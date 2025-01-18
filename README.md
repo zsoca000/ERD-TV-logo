@@ -27,8 +27,8 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
    python --version
 
 #### Step 4: Install python dependencies
-```bash
-pip install numpy Pillow
+    ```cmd
+    pip install numpy Pillow
 
 
 ### FFmpeg
