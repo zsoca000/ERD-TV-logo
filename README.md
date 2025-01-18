@@ -27,6 +27,7 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
    python --version
 
 #### Step 4: Install python dependencies
+1. Install **numpy** and **Pillow**, run the following command in your terminal:
     ```cmd
     pip install numpy Pillow
 
