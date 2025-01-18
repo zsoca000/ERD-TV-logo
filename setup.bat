@@ -1,29 +1,64 @@
 @echo off
+setlocal
 
 :: Check for Python installation
+echo Checking for Python installation...
 where python >nul 2>nul
 if %errorlevel% neq 0 (
-    echo Installing Python...
-    :: Download Python installer using PowerShell
-    powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.x.x/python-3.x.x.exe -OutFile python_installer.exe"
+    echo Python is not installed. Installing Python...
+    powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe -OutFile python_installer.exe"
+    if %errorlevel% neq 0 (
+        echo Error downloading Python installer. Exiting...
+        exit /b 1
+    )
     start /wait python_installer.exe /quiet InstallAllUsers=1 PrependPath=1
+    if %errorlevel% neq 0 (
+        echo Error installing Python. Exiting...
+        exit /b 1
+    )
+    echo Python installed successfully.
+) else (
+    echo Python is already installed.
 )
 
 :: Check for FFmpeg installation
+echo Checking for FFmpeg installation...
 where ffmpeg >nul 2>nul
 if %errorlevel% neq 0 (
-    echo Installing FFmpeg...
-    :: Download FFmpeg using PowerShell
-    powershell -Command "Invoke-WebRequest -Uri https://ffmpeg.org/releases/ffmpeg-4.x.x-win64-static.zip -OutFile ffmpeg.zip"
+    echo FFmpeg is not installed. Installing FFmpeg...
+    powershell -Command "Invoke-WebRequest -Uri https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-01-18-12-56/ffmpeg-N-118321-g4c96d6bf75-win64-lgpl.zip -OutFile ffmpeg.zip"
+    if %errorlevel% neq 0 (
+        echo Error downloading FFmpeg. Exiting...
+        exit /b 1
+    )
     powershell -command "Expand-Archive -Path ffmpeg.zip -DestinationPath ."
+    if %errorlevel% neq 0 (
+        echo Error extracting FFmpeg. Exiting...
+        exit /b 1
+    )
     move ffmpeg-4.x.x-win64-static\bin\ffmpeg.exe C:\Windows\System32
-
-    :: Add FFmpeg to PATH (if not added already)
+    if %errorlevel% neq 0 (
+        echo Error moving FFmpeg executable. Exiting...
+        exit /b 1
+    )
     setx PATH "%PATH%;C:\ffmpeg-4.x.x-win64-static\bin"
+    if %errorlevel% neq 0 (
+        echo Error adding FFmpeg to PATH. Exiting...
+        exit /b 1
+    )
+    echo FFmpeg installed successfully.
+) else (
+    echo FFmpeg is already installed.
 )
 
 :: Install Python dependencies
 echo Installing Python dependencies...
 pip install -r requirements.txt
+if %errorlevel% neq 0 (
+    echo Error installing Python dependencies. Exiting...
+    exit /b 1
+)
+echo Python dependencies installed successfully.
 
 echo Setup complete!
+endlocal
