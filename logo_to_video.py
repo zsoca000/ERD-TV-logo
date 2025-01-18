@@ -223,7 +223,7 @@ class AddLogoProcess:
         self.meta_data  = MetaData(video_path=video_path)
 
     def process(self):
-        
+        os.mkdir(self.work_path)
         self.save_audio()
         print(f'Audio saved temporarly to {self.audio_path}')
         decode_process = self.create_decode_process()
@@ -270,6 +270,7 @@ class AddLogoProcess:
             print('Decode process finished')
             print('Encode process finished')
             self.merge_audio()
+            shutil.rmtree(self.work_path)
             print(f'Audio merged')
         
     def create_decode_process(self):
@@ -388,7 +389,7 @@ if __name__ == '__main__':
    
     # print(MetaData(video_path='samples/The.Big.Short.2015.720p.mHD.BluRay.x264.HuN-sokadiklany.mkv').nb_frames)
 
-    add_logo = AddLogoProcess('samples/The.Big.Short.2015.720p.mHD.BluRay.x264.HuN-sokadiklany.mkv')
+    add_logo = AddLogoProcess('samples/sample1.mp4')
     add_logo.process()
 
 
