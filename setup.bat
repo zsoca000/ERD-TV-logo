@@ -36,12 +36,12 @@ if %errorlevel% neq 0 (
         echo Error extracting FFmpeg. Exiting...
         exit /b 1
     )
-    move ffmpeg-4.x.x-win64-static\bin\ffmpeg.exe C:\Windows\System32
+    move ffmpeg-N-118321-g4c96d6bf75-win64-lgpl C:\
     if %errorlevel% neq 0 (
         echo Error moving FFmpeg executable. Exiting...
         exit /b 1
     )
-    setx PATH "%PATH%;C:\ffmpeg-4.x.x-win64-static\bin"
+    setx PATH "%PATH%;C:\ffmpeg-N-118321-g4c96d6bf75-win64-lgpl\bin"
     if %errorlevel% neq 0 (
         echo Error adding FFmpeg to PATH. Exiting...
         exit /b 1
