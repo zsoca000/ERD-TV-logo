@@ -31,7 +31,6 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
     ```cmd
     pip install numpy Pillow
 
-
 ### FFmpeg
 
 #### Step 1: Download FFmpeg
