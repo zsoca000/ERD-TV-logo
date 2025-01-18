@@ -8,6 +8,31 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
 
 ## Install dependencies
 
+### Python
+
+#### Step 1: Download Python
+1. Visit the official Python website: [https://www.python.org/downloads/](https://www.python.org/downloads/).
+2. On the homepage, you'll see the **"Download Python"** button. This will typically download the latest stable version.
+3. Alternatively, you can click on **"View the full list of downloads"** for older versions or platform-specific options.
+
+#### Step 2: Install Python
+1. Once the installer is downloaded, run the executable file to begin the installation.
+2. **Important**: Check the box that says **"Add Python to PATH"** before clicking **Install Now**. This ensures Python is added to your system’s environment variables, making it accessible from the command line.
+3. Follow the prompts to complete the installation. You can use the default settings unless you have specific preferences.
+
+#### Step 3: Verify the Installation
+1. Open a **Command Prompt** (press **Win + R**, type `cmd`, and press **Enter**).
+2. Type the following command to verify that Python is installed and accessible:
+   ```cmd
+   python --version
+
+#### Step 4: Install python dependencies
+```bash
+pip install numpy Pillow
+
+
+### FFmpeg
+
 #### Step 1: Download FFmpeg
 1. Go to the official FFmpeg website: [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html).
 2. Under **Get packages & executable files**, select **Windows** (e.g., from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/)).
