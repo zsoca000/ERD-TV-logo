@@ -226,6 +226,15 @@ class AddLogoProcess:
         self.audio_path = os.path.join(self.work_path,'audio.wav')
         # Meta data
         self.meta_data  = MetaData(video_path=video_path)
+        # Load logo
+        logo_path = os.path.join(file_location,'..',"images","ERDTV-logo.png")
+        self.logo = Image.open(logo_path).convert("RGBA")
+        
+        scale = 75/1080
+        
+        self.logo = self.logo.resize(
+            (int(self.logo.width*scale), int(self.logo.height*scale)), 
+        )
 
     def process(self):
         if not os.path.exists(self.work_path):
@@ -357,15 +366,16 @@ class AddLogoProcess:
         shutil.move(tmp_path,self.output_path)
 
     def logo2frame(self,frame):
-        frame = self.text2frame(frame,'ERD')
-        frame = self.text2frame(frame,'TV')
-        return frame
+        # frame = self.text2frame(frame,'ERD')
+        # frame = self.text2frame(frame,'TV')
+        frame_pil = Image.fromarray(frame)
+        position = (int(65/1920 * frame.shape[1]), int(980/1080 * frame.shape[0]))
+        frame_pil.paste(self.logo, position, self.logo)
+        return np.array(frame_pil)
 
     def text2frame(self,frame,text):
         
         params = config[text]
-
-        
 
         frame_pil = Image.fromarray(frame)
         draw = ImageDraw.Draw(frame_pil)
@@ -388,8 +398,6 @@ class AddLogoProcess:
         frame = np.array(frame_pil)
 
         return frame
-
-
 
 if __name__ == '__main__':
    
