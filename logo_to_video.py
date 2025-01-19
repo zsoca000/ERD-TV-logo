@@ -3,9 +3,9 @@ import json
 import os
 import numpy as np
 import shutil
-import cv2
 from PIL import Image, ImageDraw, ImageFont
 import time
+import sys
 
 config = {
     "ERD": {
@@ -383,46 +383,16 @@ class AddLogoProcess:
 
 
 
-
-
 if __name__ == '__main__':
    
-    # print(MetaData(video_path='samples/The.Big.Short.2015.720p.mHD.BluRay.x264.HuN-sokadiklany.mkv').nb_frames)
-
     add_logo = AddLogoProcess('samples/sample1.mp4')
     add_logo.process()
 
 
-    #image = cv2.imread("image.jpg")
-    #image = add_logo.logo2frame(image)
-    #cv2.imwrite('image_logo.png', image)
-
     # DECODE: ffmpeg -i samples/sample1.mp4 -f image2pipe -pix_fmt rgb24 -vcodec rawvideo -
     # ENCODE: ffmpeg -y -f rawvideo -s 1920x1080 -pix_fmt rgb24 -r 5949/200 -i - -an -vcodec h264 -b:v 915144 -pix_fmt yuv420p samples/sample1_logo.mp4
     
-    decode_cmd = [
-            "ffmpeg",
-            "-i", "samples/sample1.mp4",
-            "-f", "image2pipe", # maybe rawvideo?
-            "-pix_fmt", "rgb24",
-            "-vcodec", "rawvideo",
-            "-"
-    ]
 
-    encode_cmd = [
-        "ffmpeg",
-        "-y", 
-        "-f", "rawvideo", # input fromat
-        "-s", "1920x1080", # size
-        "-pix_fmt", "rgb24", # pixel format
-        "-r", '5949/200', # frame rate
-        "-i", "-", # Input from pipe
-        "-an", # No audio
-        "-vcodec", "h264", # Output codec
-        "-b:v","915144",
-        '-pix_fmt', "yuv420p", 
-        "samples/sample1_logo.mp4"
-    ]
     
 
 
