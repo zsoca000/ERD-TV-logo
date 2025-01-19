@@ -60,5 +60,29 @@ if %errorlevel% neq 0 (
 )
 echo Python dependencies installed successfully.
 
+: CREATE SHORTCUT
+
+: Define variables for paths
+set BAT_FILE_PATH=%~dp0ERD_TV.bat
+set SHORTCUT_PATH=%USERPROFILE%\Desktop\ERD_TV.lnk
+set ICON_PATH=%~dp0images\logo.ico
+
+:: Call the VBScript to create the shortcut
+echo Set oWS = WScript.CreateObject("WScript.Shell") > CreateShortcut.vbs
+echo Set oLink = oWS.CreateShortcut("%SHORTCUT_PATH%") >> CreateShortcut.vbs
+echo oLink.TargetPath = "%BAT_FILE_PATH%" >> CreateShortcut.vbs
+echo oLink.IconLocation = "%ICON_PATH%" >> CreateShortcut.vbs
+echo oLink.Save >> CreateShortcut.vbs
+
+:: Run the VBScript
+cscript //nologo CreateShortcut.vbs
+
+:: Clean up the temporary VBScript
+del CreateShortcut.vbs
+
+echo Shortcut created successfully!
+
 echo Setup complete!
+
+pause
 endlocal

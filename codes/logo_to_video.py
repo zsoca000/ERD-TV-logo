@@ -5,7 +5,8 @@ import numpy as np
 import shutil
 from PIL import Image, ImageDraw, ImageFont
 import time
-import sys
+import tkinter as tk
+from tkinter import filedialog
 
 config = {
     "ERD": {
@@ -390,15 +391,17 @@ class AddLogoProcess:
 
 if __name__ == '__main__':
    
-    if len(sys.argv) < 1:
-        print("Usage: python example.py <video_path>")
-    else:
-        video_path = sys.argv[1]
-        print(f"Video path: {video_path}")
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
 
+    # Ask the user to select a folder
+    video_path = filedialog.askopenfilename(title="Select a file")
 
-    add_logo = AddLogoProcess(video_path)
-    add_logo.process()
+    # Open the folder in Windows Explorer
+    if video_path:
+        add_logo = AddLogoProcess(video_path)
+        add_logo.process()
+        os.startfile(os.path.dirname(video_path))
 
 
     # DECODE: ffmpeg -i samples/sample1.mp4 -f image2pipe -pix_fmt rgb24 -vcodec rawvideo -
