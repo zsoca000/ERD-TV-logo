@@ -10,14 +10,13 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
 1. Run the `setup.bat` to install all the required dependencies:
    - Python (numpy and pillow)
    - FFmpeg
-
 2. Check the dependencies by running the following command:
    ```cmd
    python --version
    ffmpeg --version
 
 
-## Use
+## Useage
 
 1. Open command promt from the program's folder
 
