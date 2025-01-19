@@ -9,19 +9,21 @@ import sys
 
 config = {
     "ERD": {
-        "position": (65, 980),  # (X, Y) position
+        "position": (65, 980),  # (X, Y) position on (1920x1080)
         "rel_pos": (65/1920, 980/1080),  # (X, Y) position
         "font_path": "fonts/NotoSans_ExtraCondensed-SemiBold.ttf",  # Approximation for Ebrima
         "font_size": 77.1,
+        "rel_font_size": 77.1/1080,
         "fill_color": (255, 255, 255),  # White (BGR format)
         "stroke_color": (0, 0, 0),  # Black stroke
         "stroke_width": 2,  # Thickness of the stroke
     },
     "TV": {
-        "position": (180, 993),  # (X, Y) position
+        "position": (180, 993),  # (X, Y) position on (1920x1080)
         "rel_pos": (180/1920, 993/1080),  # (X, Y) position
         "font_path": "fonts/NotoSans_SemiCondensed-SemiBold.ttf",  
-        "font_size": 44,  
+        "font_size": 44,
+        "rel_font_size": 44/1080,
         "fill_color": (255, 0, 0),  # Red (BGR format)
         "stroke_color": (0, 0, 0),  # Black stroke
         "stroke_width": 2,  # Thickness of the stroke
@@ -363,7 +365,10 @@ class AddLogoProcess:
 
         frame_pil = Image.fromarray(frame)
         draw = ImageDraw.Draw(frame_pil)
-        font = ImageFont.truetype(params['font_path'], params['font_size'])
+
+        font_size = frame.shape[1]*params['rel_font_size']
+
+        font = ImageFont.truetype(params['font_path'], font_size)
 
         x_pos = params["rel_pos"][0]*frame.shape[1]
         y_pos = params["rel_pos"][1]*frame.shape[0]
@@ -385,7 +390,14 @@ class AddLogoProcess:
 
 if __name__ == '__main__':
    
-    add_logo = AddLogoProcess('samples/sample1.mp4')
+    if len(sys.argv) < 1:
+        print("Usage: python example.py <video_path>")
+    else:
+        video_path = sys.argv[1]
+        print(f"Video path: {video_path}")
+
+
+    add_logo = AddLogoProcess(video_path)
     add_logo.process()
 
 
