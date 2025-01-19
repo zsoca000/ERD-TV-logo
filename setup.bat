@@ -65,7 +65,7 @@ echo Python dependencies installed successfully.
 : Define variables for paths
 set BAT_FILE_PATH=%~dp0ERD_TV.bat
 set SHORTCUT_PATH=%USERPROFILE%\Desktop\ERD_TV.lnk
-set ICON_PATH=%~dp0images\logo.ico
+set ICON_PATH=%~dp0images\ERDTV-logo-square.ico
 
 :: Call the VBScript to create the shortcut
 echo Set oWS = WScript.CreateObject("WScript.Shell") > CreateShortcut.vbs

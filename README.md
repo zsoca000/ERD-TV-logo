@@ -8,9 +8,10 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
 
 ## Installation
 ### 1. Setup all the required dependencies
-   Run `setup.bat` to install:
-   - Python 3.11.9 (win64)
-   - FFmpeg 2025-01-18-12-56 (win64)
+   Run `setup.bat` to:
+   - install Python 3.11.9 (win64)
+   - install FFmpeg 2025-01-18-12-56 (win64)
+   - create desktop shortcut
 ### 2. Check the dependencies
    Open command line and run:
    ```cmd
@@ -18,7 +19,4 @@ The program is able to put a given logo (in this case a TV channel logo) into a 
    ffmpeg --version
    ```
 ## Useage
-   Open cmd from the program's folder and run the following command, by repaceing the `<path_to_your_video>` with the video's path on which you want to put the logo:
-   ```cmd
-   python logo_to_video.py <path_to_your_video>
-   ```
+   Run the desktop shortcut or the `ERD_TV.bat` file, and browse the video from the explorer.

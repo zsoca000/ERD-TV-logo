@@ -8,11 +8,13 @@ import time
 import tkinter as tk
 from tkinter import filedialog
 
+file_location = os.path.dirname(os.path.realpath(__file__))
+
 config = {
     "ERD": {
         "position": (65, 980),  # (X, Y) position on (1920x1080)
         "rel_pos": (65/1920, 980/1080),  # (X, Y) position
-        "font_path": "fonts/NotoSans_ExtraCondensed-SemiBold.ttf",  # Approximation for Ebrima
+        "font_path": os.path.join(file_location,'..',"fonts","NotoSans_ExtraCondensed-SemiBold.ttf"),  # Approximation for Ebrima
         "font_size": 77.1,
         "rel_font_size": 77.1/1080,
         "fill_color": (255, 255, 255),  # White (BGR format)
@@ -22,7 +24,7 @@ config = {
     "TV": {
         "position": (180, 993),  # (X, Y) position on (1920x1080)
         "rel_pos": (180/1920, 993/1080),  # (X, Y) position
-        "font_path": "fonts/NotoSans_SemiCondensed-SemiBold.ttf",  
+        "font_path": os.path.join(file_location,'..',"fonts","NotoSans_SemiCondensed-SemiBold.ttf"),  
         "font_size": 44,
         "rel_font_size": 44/1080,
         "fill_color": (255, 0, 0),  # Red (BGR format)
@@ -226,7 +228,8 @@ class AddLogoProcess:
         self.meta_data  = MetaData(video_path=video_path)
 
     def process(self):
-        os.mkdir(self.work_path)
+        if not os.path.exists(self.work_path):
+            os.mkdir(self.work_path)
         self.save_audio()
         print(f'Audio saved temporarly to {self.audio_path}')
         decode_process = self.create_decode_process()
@@ -368,7 +371,6 @@ class AddLogoProcess:
         draw = ImageDraw.Draw(frame_pil)
 
         font_size = frame.shape[1]*params['rel_font_size']
-
         font = ImageFont.truetype(params['font_path'], font_size)
 
         x_pos = params["rel_pos"][0]*frame.shape[1]
