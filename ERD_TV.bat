@@ -1,4 +1,3 @@
 @echo off
-python %~dp0codes\logo_to_video.py
-
-pause
+python "%~dp0codes\main.py"
+exit

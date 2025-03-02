@@ -6,9 +6,12 @@ import shutil
 from PIL import Image, ImageDraw, ImageFont
 import time
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import filedialog
+from PyQt6.QtCore import QThread, pyqtSignal
 
 file_location = os.path.dirname(os.path.realpath(__file__))
+
 
 config = {
     "ERD": {
@@ -33,11 +36,13 @@ config = {
     },
 }
 
+
 def sec_to_hms(seconds):
     hours = int((seconds % 86400) // 3600)
     minutes = int((seconds % 3600) // 60)
     seconds = int(seconds % 60)
     return f"{hours:02}:{minutes:02}:{seconds:02}"
+
 
 class MetaData:
 
@@ -71,6 +76,7 @@ class MetaData:
         )
         meta_data = json.loads(result.stdout)
         return meta_data["streams"][0]
+
 
 class AddLogo:
 
@@ -215,28 +221,43 @@ class AddLogo:
 
         return frame
 
-class AddLogoProcess:
 
-    def __init__(self,video_path):
+class AddLogoCtk:
+
+    def __init__(self,video_path,loc):
         # Pathes
         self.video_path = video_path
         self.work_path = os.path.splitext(video_path)[0]
         extension = os.path.splitext(video_path)[1]
         self.output_path = self.work_path + '_logo' + extension
         self.audio_path = os.path.join(self.work_path,'audio.wav')
+        
         # Meta data
         self.meta_data  = MetaData(video_path=video_path)
+        
         # Load logo
         logo_path = os.path.join(file_location,'..',"images","ERDTV-logo.png")
         self.logo = Image.open(logo_path).convert("RGBA")
-        
         scale = 75/1080
-        
         self.logo = self.logo.resize(
             (int(self.logo.width*scale), int(self.logo.height*scale)), 
         )
 
-    def process(self):
+        # Location
+        pos_x = 65/1920
+        pos_y = 100/1080
+        
+        if loc == 'top left':
+            self.rel_pos = (pos_x,pos_y)
+        elif loc == 'bottom left':
+            self.rel_pos = (pos_x,1-pos_y)
+        elif loc == 'bottom right':
+            self.rel_pos = (1-pos_x,1-pos_y)
+        elif loc == 'top right':
+            self.rel_pos = (1-pos_x,pos_y)
+        
+
+    def process(self,frame_progress:ctk.CTkToplevel=None,label_progress:ctk.CTkLabel=None):
         if not os.path.exists(self.work_path):
             os.mkdir(self.work_path)
         self.save_audio()
@@ -245,6 +266,15 @@ class AddLogoProcess:
         print('Decode process started..')
         encode_process = self.create_encode_process()
         print('Encode process started..')
+        print('logo put to',self.rel_pos)
+
+        
+
+        if frame_progress is not None:
+            if self.meta_data.nb_frames is not None:
+                progress_bar = ctk.CTkProgressBar(frame_progress, mode="determinate", width=300)
+                progress_bar.pack(pady=20)
+                progress_bar.set(0) 
 
         i = 0
         start_time = time.time()
@@ -268,8 +298,13 @@ class AddLogoProcess:
                 time_elapsed = time.time() - start_time
                 if self.meta_data.nb_frames is not None:
                     log = f'Frame processed: {i}/{self.meta_data.nb_frames} (processed: {sec_to_hms(time_processed)}) - time elapsed: {sec_to_hms(time_elapsed)}'
+                    if progress_bar is not None and frame_progress is not None:
+                        progress_bar.set(i/int(self.meta_data.nb_frames))
                 else:
                     log = f'Frame processed: {i} (processed: {sec_to_hms(time_processed)}) - time elapsed: {sec_to_hms(time_elapsed)}'
+                
+                label_progress.configure(text=log)
+                frame_progress.update_idletasks()
                 print(log,end='\r')
 
         except KeyboardInterrupt:
@@ -369,8 +404,10 @@ class AddLogoProcess:
         # frame = self.text2frame(frame,'ERD')
         # frame = self.text2frame(frame,'TV')
         frame_pil = Image.fromarray(frame)
-        position = (int(65/1920 * frame.shape[1]), int(980/1080 * frame.shape[0]))
-        frame_pil.paste(self.logo, position, self.logo)
+
+        position = (int(self.rel_pos[0] * frame.shape[1]), int(self.rel_pos[1] * frame.shape[0]))
+
+        frame_pil.paste(self.logo, position , self.logo)
         return np.array(frame_pil)
 
     def text2frame(self,frame,text):
@@ -399,24 +436,217 @@ class AddLogoProcess:
 
         return frame
 
-if __name__ == '__main__':
-   
-    root = tk.Tk()
-    root.withdraw()  # Hide the root window
 
-    # Ask the user to select a folder
-    video_path = filedialog.askopenfilename(title="Select a file")
-
-    # Open the folder in Windows Explorer
-    if video_path:
-        add_logo = AddLogoProcess(video_path)
-        add_logo.process()
-        os.startfile(os.path.dirname(video_path))
-
-
-    # DECODE: ffmpeg -i samples/sample1.mp4 -f image2pipe -pix_fmt rgb24 -vcodec rawvideo -
-    # ENCODE: ffmpeg -y -f rawvideo -s 1920x1080 -pix_fmt rgb24 -r 5949/200 -i - -an -vcodec h264 -b:v 915144 -pix_fmt yuv420p samples/sample1_logo.mp4
+class AddLogoQWorker(QThread):
     
+    progress_signal = pyqtSignal(str)
+
+    def __init__(self,video_path,loc):
+        super().__init__()
+
+        # Pathes
+        self.video_path = video_path
+        self.work_path = os.path.splitext(video_path)[0]
+        extension = os.path.splitext(video_path)[1]
+        self.output_path = self.work_path + '_logo' + extension
+        self.audio_path = os.path.join(self.work_path,'audio.wav')
+        
+        # Meta data
+        self.meta_data  = MetaData(video_path=video_path)
+        
+        # Load logo
+        logo_path = os.path.join(file_location,'..',"images","ERDTV-logo.png")
+        self.logo = Image.open(logo_path).convert("RGBA")
+        scale = 75/1080
+        self.logo = self.logo.resize(
+            (int(self.logo.width*scale), int(self.logo.height*scale)), 
+        )
+
+        # Location
+        pos_x = 65/1920
+        pos_y = 100/1080
+        
+        if loc == 'Top Left':
+            self.rel_pos = (pos_x,pos_y)
+        elif loc == 'Bottom Left':
+            self.rel_pos = (pos_x,1-pos_y)
+        elif loc == 'Bottom Right':
+            self.rel_pos = (1-pos_x,1-pos_y)
+        elif loc == 'Top Right':
+            self.rel_pos = (1-pos_x,pos_y)
+    
+    def run(self):
+        if not os.path.exists(self.work_path):
+            os.mkdir(self.work_path)
+        self.save_audio()
+        print(f'Audio saved temporarly to {self.audio_path}')
+        decode_process = self.create_decode_process()
+        print('Decode process started..')
+        encode_process = self.create_encode_process()
+        print('Encode process started..')
+        print('logo put to',self.rel_pos)
+
+        i = 0
+        start_time = time.time()
+        try:
+            while True:
+                frame_size = self.meta_data.width * self.meta_data.height * 3
+
+                raw_frame = decode_process.stdout.read(frame_size)
+
+                if not raw_frame:
+                    break  # End of video
+
+                # Convert raw bytes to NumPy array
+                frame = np.frombuffer(raw_frame, dtype=np.uint8).reshape((self.meta_data.height, self.meta_data.width, 3))
+                frame_logo = self.logo2frame(frame)
+
+                # Write processed frame to encoding process
+                encode_process.stdin.write(self.logo2frame(frame_logo).tobytes())
+                i+=1
+                time_processed = i//eval(self.meta_data.fps)
+                time_elapsed = time.time() - start_time
+                if self.meta_data.nb_frames is not None:
+                    log = f'Frame processed: {i}/{self.meta_data.nb_frames} (processed: {sec_to_hms(time_processed)}) - time elapsed: {sec_to_hms(time_elapsed)}'
+                else:
+                    log = f'Frame processed: {i} (processed: {sec_to_hms(time_processed)}) - time elapsed: {sec_to_hms(time_elapsed)}'
+                print(log,end='\r')
+                self.progress_signal.emit(log)
+
+        except KeyboardInterrupt:
+            print("Processing interrupted.")
+        
+        finally:
+            # Clean up
+            decode_process.stdout.close()
+            encode_process.stdin.close()
+            decode_process.wait()
+            encode_process.wait()
+            print(log)
+            print('Decode process finished')
+            print('Encode process finished')
+            self.progress_signal.emit('Finished!')
+            self.merge_audio()
+            shutil.rmtree(self.work_path)
+            print(f'Audio merged')
+        
+    def create_decode_process(self):
+        cmd = [
+            "ffmpeg",
+            "-i", self.video_path,
+            "-f", "image2pipe", # maybe rawvideo?
+            "-pix_fmt", "rgb24",
+            "-vcodec", "rawvideo",
+            "-"
+        ]
+        
+        return subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+
+    def create_encode_process(self):
+        cmd = [
+            "ffmpeg",
+            "-y", 
+            "-f", "rawvideo", # input fromat
+            "-s", f"{self.meta_data.width}x{self.meta_data.height}", # size
+            "-pix_fmt", "rgb24", # pixel format
+            "-r", str(self.meta_data.fps), # frame rate
+            "-i", "-", # Input from pipe
+            "-an", # No audio
+            "-vcodec", self.meta_data.codec_name, # Output codec
+        ]
+        
+        if self.meta_data.bit_rate is not None:
+            cmd += ["-b:v",self.meta_data.bit_rate]
+        
+        cmd += ['-pix_fmt', self.meta_data.pix_fmt, self.output_path]
+        
+        return subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    
+    def save_audio(self):
+        subprocess.call(
+            [
+                "ffmpeg","-y",
+                "-i",self.video_path,
+                "-vn",
+                "-acodec","pcm_s16le",
+                "-ar","44100",
+                "-ac","2",
+                self.audio_path,
+                "-hide_banner",
+                "-loglevel", "error",
+            ]
+        )
+    
+    def merge_audio(self):
+        
+        tmp_path = self.output_path.replace("logo","tmp")
+
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-y",
+                "-i", self.output_path,
+                "-i", self.audio_path,
+                "-map", "0:v",
+                "-map", "1:a",
+                "-c:v", "copy",
+                "-shortest", tmp_path,
+                "-hide_banner",
+                "-loglevel", "error"
+            ]
+        )
+
+        os.remove(self.output_path)
+        shutil.move(tmp_path,self.output_path)
+
+    def logo2frame(self,frame):
+        # frame = self.text2frame(frame,'ERD')
+        # frame = self.text2frame(frame,'TV')
+        frame_pil = Image.fromarray(frame)
+
+        position = (int(self.rel_pos[0] * frame.shape[1]), int(self.rel_pos[1] * frame.shape[0]))
+
+        frame_pil.paste(self.logo, position , self.logo)
+        return np.array(frame_pil)
+
+    def text2frame(self,frame,text):
+        
+        params = config[text]
+
+        frame_pil = Image.fromarray(frame)
+        draw = ImageDraw.Draw(frame_pil)
+
+        font_size = frame.shape[1]*params['rel_font_size']
+        font = ImageFont.truetype(params['font_path'], font_size)
+
+        x_pos = params["rel_pos"][0]*frame.shape[1]
+        y_pos = params["rel_pos"][1]*frame.shape[0]
+
+        draw.text(
+            (x_pos,y_pos),
+            text,
+            font=font,
+            fill=params["fill_color"],
+            stroke_fill=params["stroke_color"],
+            stroke_width=params["stroke_width"],
+        )
+    
+        frame = np.array(frame_pil)
+
+        return frame
+
+
+# DECODE: ffmpeg -i samples/sample1.mp4 -f image2pipe -pix_fmt rgb24 -vcodec rawvideo -
+# ENCODE: ffmpeg -y -f rawvideo -s 1920x1080 -pix_fmt rgb24 -r 5949/200 -i - -an -vcodec h264 -b:v 915144 -pix_fmt yuv420p samples/sample1_logo.mp4
+
 
     
 
