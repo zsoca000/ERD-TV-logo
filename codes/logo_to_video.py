@@ -441,7 +441,7 @@ class AddLogoQWorker(QThread):
     
     progress_signal = pyqtSignal(str)
 
-    def __init__(self,video_path,loc):
+    def __init__(self,video_path):
         super().__init__()
 
         # Pathes
@@ -462,7 +462,9 @@ class AddLogoQWorker(QThread):
             (int(self.logo.width*scale), int(self.logo.height*scale)), 
         )
 
-        # Location
+
+    def set_loc(self, loc):
+        
         pos_x = 65/1920
         pos_y = 100/1080
         
@@ -474,6 +476,7 @@ class AddLogoQWorker(QThread):
             self.rel_pos = (1-pos_x,1-pos_y)
         elif loc == 'Top Right':
             self.rel_pos = (1-pos_x,pos_y)
+
     
     def run(self):
         if not os.path.exists(self.work_path):
@@ -643,6 +646,25 @@ class AddLogoQWorker(QThread):
 
         return frame
 
+
+def get_frame(video_path, width, height, frame_number=10):
+
+    # Extract frame using FFmpeg
+    cmd_frame = [
+        "ffmpeg", "-i", video_path, "-vf", f"select='eq(n,{frame_number})'", "-vsync", "vfr",
+        "-pix_fmt", "rgb24", "-f", "image2pipe", "-pix_fmt", "rgb24","-vcodec", "rawvideo", "-vframes", "1", "pipe:1"
+    ]
+    frame_data = subprocess.run(cmd_frame, capture_output=True).stdout
+
+    if not frame_data:
+        raise ValueError("FFmpeg did not return any frame data.")
+
+    expected_size = width * height * 3
+    if len(frame_data) != expected_size:
+        raise ValueError(f"Expected {expected_size} bytes but got {len(frame_data)} bytes.")
+
+    frame = np.frombuffer(frame_data, np.uint8).reshape((height, width, 3))
+    return frame
 
 # DECODE: ffmpeg -i samples/sample1.mp4 -f image2pipe -pix_fmt rgb24 -vcodec rawvideo -
 # ENCODE: ffmpeg -y -f rawvideo -s 1920x1080 -pix_fmt rgb24 -r 5949/200 -i - -an -vcodec h264 -b:v 915144 -pix_fmt yuv420p samples/sample1_logo.mp4
