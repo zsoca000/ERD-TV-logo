@@ -462,6 +462,8 @@ class AddLogoQWorker(QThread):
             (int(self.logo.width*scale), int(self.logo.height*scale)), 
         )
 
+    def set_start_frame(self, start_frame):
+        self.start_frame = start_frame
 
     def set_loc(self, loc):
         
@@ -502,10 +504,15 @@ class AddLogoQWorker(QThread):
 
                 # Convert raw bytes to NumPy array
                 frame = np.frombuffer(raw_frame, dtype=np.uint8).reshape((self.meta_data.height, self.meta_data.width, 3))
-                frame_logo = self.logo2frame(frame)
-
+                
+                if i <= self.start_frame:
+                    print(i)
+                    frame_logo = frame
+                else:
+                    frame_logo = self.logo2frame(frame)
+                
                 # Write processed frame to encoding process
-                encode_process.stdin.write(self.logo2frame(frame_logo).tobytes())
+                encode_process.stdin.write(frame_logo.tobytes())
                 i+=1
                 time_processed = i//eval(self.meta_data.fps)
                 time_elapsed = time.time() - start_time

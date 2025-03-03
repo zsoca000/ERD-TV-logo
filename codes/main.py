@@ -120,7 +120,7 @@ class FileBrowseApp(QWidget):
                 height=self.worker.meta_data.height,
                 frame_number=int(start_frame)
             )
-            if location and logo_type:
+            if location and logo_type and start_frame:
                 self.worker.set_loc(location)
                 self.display_image(
                     self.worker.logo2frame(self.thumbnail)
@@ -176,6 +176,8 @@ class FileBrowseApp(QWidget):
             (btn.text() for btn in self.radio_group2.findChildren(QRadioButton) if btn.isChecked()), None
         )
 
+        start_frame = self.spin_input.value()
+
         if not os.path.exists(file_path):
             self.process_label.setText(f"Invalid file path")
         elif location is None:
@@ -186,6 +188,8 @@ class FileBrowseApp(QWidget):
             self.process_button.setEnabled(False)
             self.process_label.setText(f"Started...")
             # self.worker.set_loc(loc=location) # Became redundant by tracking toggle
+            self.worker.set_start_frame(start_frame)
+            print(self.worker.start_frame)
             self.worker.progress_signal.connect(self.update_progress)
             self.worker.start()
 
